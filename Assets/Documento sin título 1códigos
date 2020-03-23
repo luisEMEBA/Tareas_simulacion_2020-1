@@ -1,0 +1,232 @@
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class DragDropScript : MonoBehaviour
+{
+
+    //Initialize Variables
+    GameObject getTarget;
+    bool isMouseDragging;
+    Vector3 offsetValue;
+    Vector3 positionOfScreen;
+
+    // Use this for initialization
+    void Start()
+    {
+
+    }
+
+    void Update()
+    {
+
+        //Mouse Button Press Down
+        if (Input.GetMouseButtonDown(0))
+        {
+            RaycastHit hitInfo;
+            getTarget = ReturnClickedObject(out hitInfo);
+            if (getTarget != null)
+            {
+                isMouseDragging = true;
+                //Converting world position to screen position.
+                positionOfScreen = Camera.main.WorldToScreenPoint(getTarget.transform.position);
+                offsetValue = getTarget.transform.position - Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, positionOfScreen.z));
+            }
+        }
+
+        //Mouse Button Up
+        if (Input.GetMouseButtonUp(0))
+        {
+            isMouseDragging = false;
+        }
+
+        //Is mouse Moving
+        if (isMouseDragging)
+        {
+            //tracking mouse position.
+            Vector3 currentScreenSpace = new Vector3(Input.mousePosition.x, Input.mousePosition.y, positionOfScreen.z);
+
+            //converting screen position to world position with offset changes.
+            Vector3 currentPosition = Camera.main.ScreenToWorldPoint(currentScreenSpace) + offsetValue;
+
+            //It will update target gameobject's current postion.
+            getTarget.transform.position = currentPosition;
+        }
+
+
+    }
+
+    //Method to Return Clicked Object
+    GameObject ReturnClickedObject(out RaycastHit hit)
+    {
+        GameObject target = null;
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        if (Physics.Raycast(ray.origin, ray.direction * 10, out hit))
+        {
+            target = hit.collider.gameObject;
+        }
+        return target;
+    }
+
+}
+
+
+/////////////////////
+
+    public GameObject ensayo_arrastre;
+    bool dragging;
+    Vector3 offsetValue;
+    Vector3 positionOfScreen;
+
+        if(Input.GetMouseButtonDown(0)){
+        RaycastHit hitInfo;
+        ensayo_arrastre = ReturnClickedObject(out hitInfo);
+        if(ensayo_arrastre != null){
+        dragging = true;
+        Camera.main.WorldToScreenPoint(ensayo_arrastre.transform.position);
+        offsetValue = ensayo_arrastre.transform.position - Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, positionOfScreen.z));
+        }
+        }
+        if(Input.GetMouseButtonUp(0)){
+        dragging = false;
+        }
+        if(dragging){
+        Vector3 currentScreenSpace = new Vector3(Input.mousePosition.x, Input.mousePosition.y, positionOfScreen.z);
+        Vector3 currentPosition = Camera.main.ScreenToWorldPoint(currentScreenSpace) + offsetValue;
+        ensayo_arrastre.transform.position = currentPosition;
+        }
+        GameObject ReturnClickedObject (out RaycastHit hit){
+        GameObject target = null;
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);    
+        if(Physics.Raycast(ray.origin, ray.direction * 10, out hit)){
+        target = hit.collider.gameObject;
+        }
+        return target;
+        }
+        
+        ////////////////////////////
+        
+
+
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class ModelDrages : MonoBehaviour 
+{
+
+//A camera that emits radiation
+private Camera cam;
+//Objects colliding with rays
+private GameObject go;
+//The name of the object the ray collides with
+public static string btnName;
+private Vector3 screenSpace;
+private Vector3 offset;
+private bool isDrage = false;
+
+// Use this for initialization
+void Start ()
+{
+  cam = Camera.main;
+}
+
+// Update is called once per frame
+  void Update ()
+{
+  //Overall initial position
+  Ray ray = cam.ScreenPointToRay(Input.mousePosition);
+  //Ray from camera to click coordinate
+  RaycastHit hitInfo;
+  if (isDrage == false)
+  {
+    if(Physics .Raycast (ray,out hitInfo))
+    {
+      //The scribed rays can only be seen in the scene view
+      Debug.DrawLine(ray.origin, hitInfo.point);
+      go = hitInfo.collider.gameObject;
+      print(btnName);
+      screenSpace = cam.WorldToScreenPoint(go.transform.position);
+      offset = go.transform.position - cam.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, Input.mousePosition.z));
+      //The name of the object
+      btnName = go.name;
+      //Name of component
+    }
+    else
+    {
+      btnName = null;
+    }
+  }
+  if(Input.GetMouseButton(0))
+  {
+    Vector3 currentScreenSpace = new Vector3(Input.mousePosition.x, Input.mousePosition.y, screenSpace.z);
+    Vector3 currentPosition = cam.ScreenToWorldPoint(currentScreenSpace) + offset;
+    if (btnName != null)
+    {
+      go.transform.position = currentPosition;
+    }
+    isDrage = true;
+  }
+  else
+  {
+    isDrage = false;
+  }
+ }
+
+}
+
+////////////////////// CALCULO
+
+//EMPIEZA MOVIMIENTO DEL TERCER RESORTE
+        posicion_masa3 = currentPosition;;
+        f3 = fuerza(k_masa_3, posicion_masa3, R_masa_3) + (f2*d);
+        ac3 = aceleracion(f3, masa3);
+        vs3 = velocidad(d_masa_3, vs3, ac3);
+        posicion_masa3.y = posicion_masa3.y + vs2;
+        //FINALIZA MOVIMIENTO DEL TERCER RESORTE
+         ///EMPIEZA MOVIMIENTO DEL SEGUNDO RESORTE
+         posicion_masa2 = masa_2.gameObject.GetComponent<Transform>().position;
+         f2 = fuerza(kk, posicion_masa2, R) + (f1 * d_masa_1);
+         ac2 = aceleracion(f2, masa2);
+         vs2 = velocidad(d, vs2, ac2);
+         posicion_masa2.y = posicion_masa2.y + vs2;
+        //FINALIZA MOVIMIENTO DEL SEGUNDO RESORTE  
+        //EMPIEZA MOVIMIENTO PRIMER RESORTE Y MASA
+        posicion_masa1 = masa_1.gameObject.GetComponent<Transform>().position;
+        f1 = fuerza(k_masa_1, posicion_masa1, R_masa_1);
+        ac1 = aceleracion(f1, masa1);
+        vs1 = velocidad(d_masa_1, vs1, ac1);
+        posicion_masa1.y = posicion_masa1.y + vs1;
+        //FINALIZAR MOVIMIENTO DEL PRIMER RESORTE Y MASA
+        //ENSAYO CONDICIONALES
+        if(posicion_masa1.y >= 12){
+            posicion_masa1.y = posicion_masa1.y - (posicion_masa1.y - 12);
+            vs1 = vs1*d;
+        }
+        if((posicion_masa1.y - posicion_masa2.y) <= 1.5f){
+          posicion_masa2.y = posicion_masa2.y - (0.75f);
+          posicion_masa1.y = posicion_masa1.y + (0.75f);
+        }
+        if((posicion_masa2.y - posicion_masa3.y) <= 1.5f){
+          posicion_masa3.y = posicion_masa3.y - 0.75f;
+          posicion_masa2.y = posicion_masa2.y + 0.75f;
+        }
+        //FIN ENSAYO CONDICIONALES
+        //EMPIEZA ACTUALIZACIÓN
+        //actualización masa 3
+        masa_3.gameObject.GetComponent<Transform>().position = posicion_masa3;
+        resorte3.gameObject.GetComponent<Transform>().position = posicion_masa3;
+        escala_resorte3.y = Mathf.Abs(posicion_masa2.y - posicion_masa3.y);
+        resorte3.transform.localScale = escala_resorte3;
+        //actualización masa 2
+         masa_2.gameObject.GetComponent<Transform>().position = posicion_masa2;
+         resorte2.gameObject.GetComponent<Transform>().position = posicion_masa2;
+         escala_resorte2.y = Mathf.Abs(posicion_masa1.y - posicion_masa2.y);
+         resorte2.transform.localScale = escala_resorte2;
+        //actualización masa 1
+        masa_1.gameObject.GetComponent<Transform>().position = posicion_masa1;
+        resorte1.gameObject.GetComponent<Transform>().position = posicion_masa1;
+        escala_resote1.y=Mathf.Abs(12f - posicion_masa1.y);
+        resorte1.transform.localScale = escala_resote1;
+        //FINALIZA ACTUALIZACIÓN
+
