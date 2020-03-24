@@ -62,6 +62,8 @@ public class dosmasas : MonoBehaviour
         Debug.Log("Posición inicial : " + xr0);
         posicion_resorte2 = resorte2.gameObject.GetComponent<Transform>().position;
         inicial_r2 = resorte2.gameObject.GetComponent<Transform>().position.y;
+        posicion_masa2 = masa_2.gameObject.GetComponent<Transform>().position;
+        posicion_masa1 = masa_1.gameObject.GetComponent<Transform>().position;
     }
 float fuerza(float constante_resorte, Vector3 posishon, float punto_reposo){
  float fuerza = (-1*(constante_resorte)) * (posishon.y - punto_reposo);
@@ -106,7 +108,13 @@ float velocidad(float damping, float v0, float aceleracion_var){
     }
     if(control == 1 && vector_control != null){
     posicion_masa1 = vector_control;
+    posicion_masa2 = masa_2.gameObject.GetComponent<Transform>().position;
     control = 2;
+    }
+    if(control == 3 && vector_control != null){
+    posicion_masa2 = vector_control;
+    posicion_masa1 = masa_1.gameObject.GetComponent<Transform>().position;
+    control = 4;
     }
   }
   if(Input.GetMouseButton(0))
@@ -115,16 +123,89 @@ float velocidad(float damping, float v0, float aceleracion_var){
     Vector3 currentPosition = cam.ScreenToWorldPoint(currentScreenSpace) + offset;
     if (btnName != null)
     { 
-      if(btnName == "Masa_1"){
+        /*
+//ESTE ES EL CONDICIONAL PARA CUANDO LA MASA SOBRE LA CUAL SE PRESIONA EL RATÓN ES 
+LA MASA DE ARRIBA (MASA 1), de modo que aquí se encuentran condicionales para cuando 
+las dos masas se separan mucho o ya de plano se acercan mucho, de ahí el hecho de que se le sume
+dos unidades y media, o se le resten.
+
+Por otro lado, como sumercé va a meterle las otras dimensiones es menester que en la línea número
+140 (restablecer.y = currentPosition.y;) haga también sumercé restablecer.x = currentPosition.x;
+haiendo por supuesto cambiado en la línea 139 (Vector3 restablecer = new Vector3(posicion_masa1.x, 0 , posicion_masa1.z);)
+el posicion_masa1.x por 0, de esta manera se piensa entonces el hacerlo en tres dimensiones.
+(Lo anterior también debe ser entonces aplicado en el caso que se presione la masa de abajo)
+        */
+      if(btnName == "masa_1"){ 
       Vector3 restablecer = new Vector3(posicion_masa1.x, 0 , posicion_masa1.z);
       restablecer.y = currentPosition.y;
       vector_control = restablecer;
       go.transform.position = vector_control;
       resorte1.gameObject.GetComponent<Transform>().position = vector_control ;
-      control = 1;
-      escala_resote1.y=Mathf.Abs(12.96f - vector_control.y);
+      control = 1; 
+      /*
+Si mi chino se fija, en este caso (masa 1) control se iguala a 1, mientras que en caso de que sea masa 2 
+(línea número 182) se iguala a 3, del mismo modo en que arriba con un detonador se iguala a 2 la variable controlador
+y en el otro se iguala a cuatro. Esto se debe a que para cada caso las variables se inicializan de una manera distinta.
+      */
+      escala_resote1.y=Mathf.Abs(11f - vector_control.y);
       resorte1.transform.localScale = escala_resote1;
-      //Vector3 movimiento_alterno = new Vector3(posicion_masa2.x);
+      //empieza movimiento de masa número dos influenciado por el arrastre de masa uno
+      Vector3 movimiento_alterno;
+      if((restablecer.y - posicion_masa2.y)<=2.5f){
+      movimiento_alterno = new Vector3(posicion_masa2.x, (restablecer.y-2.5f), posicion_masa2.z);
+      masa_2.gameObject.GetComponent<Transform>().position = movimiento_alterno;
+
+      resorte2.gameObject.GetComponent<Transform>().position = movimiento_alterno;
+      escala_resorte2.y = Mathf.Abs(vector_control.y - movimiento_alterno.y);
+      }
+      if((restablecer.y - posicion_masa2.y)>=4f){
+      movimiento_alterno = new Vector3(posicion_masa2.x, (restablecer.y - 4f), posicion_masa2.z);
+      masa_2.gameObject.GetComponent<Transform>().position = movimiento_alterno;   
+
+      resorte2.gameObject.GetComponent<Transform>().position = movimiento_alterno;
+      escala_resorte2.y = Mathf.Abs(vector_control.y - movimiento_alterno.y);
+      }
+      else{    
+      escala_resorte2.y = Mathf.Abs(vector_control.y - resorte2.gameObject.GetComponent<Transform>().position.y);
+      }
+      resorte2.transform.localScale = escala_resorte2;
+      //finaliza movimiento influenciado de masa dos
+      }
+      if(btnName == "masa_2"){
+      Vector3 restablecer = new Vector3(posicion_masa2.x, 0 , posicion_masa2.z);
+      Debug.Log("La posición inicial de la masa 2 es : " + posicion_masa2.y);
+      restablecer.y = currentPosition.y + 3;
+      vector_control = restablecer;
+      go.transform.position = vector_control;
+      Debug.Log("La posición con la que queda es : " + vector_control.y);
+      resorte2.gameObject.GetComponent<Transform>().position = vector_control ;
+      control = 3;
+      escala_resorte2.y=Mathf.Abs(masa_1.gameObject.GetComponent<Transform>().position.y - vector_control.y);
+      resorte2.transform.localScale = escala_resorte2;
+      //empieza movimiento influenciado de la masa uno
+      Vector3 movimiento_alterno;
+      if((posicion_masa1.y - restablecer.y)<=2.5f){
+      movimiento_alterno = new Vector3(posicion_masa1.x, (restablecer.y+2.5f), posicion_masa1.z);
+      masa_1.gameObject.GetComponent<Transform>().position = movimiento_alterno;
+
+      resorte1.gameObject.GetComponent<Transform>().position = movimiento_alterno;
+      escala_resote1.y = Mathf.Abs(17f - movimiento_alterno.y);
+      }
+      /*
+Todos estos son puros condicionales para cuando las masas están o muy lejos o muy cerca, mi chino.
+      */
+      if((restablecer.y - posicion_masa2.y)>=4f){
+      movimiento_alterno = new Vector3(posicion_masa1.x, (restablecer.y + 4f), posicion_masa1.z);
+      masa_1.gameObject.GetComponent<Transform>().position = movimiento_alterno;   
+
+      resorte1.gameObject.GetComponent<Transform>().position = movimiento_alterno;
+      escala_resote1.y = Mathf.Abs(17f - movimiento_alterno.y);
+      }
+      else{    
+      escala_resote1.y = Mathf.Abs(17f - masa_1.gameObject.GetComponent<Transform>().position.y);
+      }
+      resorte2.transform.localScale = escala_resote1;
+      //finaliza movimiento influenciado de la masa uno
       }
     }
     isDrage = true;
@@ -134,15 +215,14 @@ float velocidad(float damping, float v0, float aceleracion_var){
     isDrage = false;
   }
         //finaliza arrastre
+        if(control == 2 || control == 4){
          ///EMPIEZA MOVIMIENTO DEL SEGUNDO RESORTE
-         posicion_masa2 = masa_2.gameObject.GetComponent<Transform>().position;
          f2 = fuerza(kk, posicion_masa2, R) + (f1 * d_masa_1);
          ac2 = aceleracion(f2, masa2);
          vs2 = velocidad(d, vs2, ac2);
          posicion_masa2.y = posicion_masa2.y + vs2;
         //FINALIZA MOVIMIENTO DEL SEGUNDO RESORTE  
         //EMPIEZA MOVIMIENTO PRIMER RESORTE Y MASA
-        posicion_masa1 = masa_1.gameObject.GetComponent<Transform>().position;
         f1 = fuerza(k_masa_1, posicion_masa1, R_masa_1);
         ac1 = aceleracion(f1, masa1);
         vs1 = velocidad(d_masa_1, vs1, ac1);
@@ -158,6 +238,12 @@ float velocidad(float damping, float v0, float aceleracion_var){
           posicion_masa1.y = posicion_masa1.y + (0.75f);
         }
         //FIN ENSAYO CONDICIONALES
+        /*
+Nota: Fíjese que las "posicion_masa1 y posicion_masa2 se inicializan en el Setup
+esto, para poder calcular con ellas durante la operación de arrastre y movimiento.
+De modo que no es necesario ya inicializarlas aquí en el Update.
+Eso es todo en términos de arrastre. 
+        */
         //EMPIEZA ACTUALIZACIÓN
         //actualización masa 2
          masa_2.gameObject.GetComponent<Transform>().position = posicion_masa2;
@@ -169,7 +255,10 @@ float velocidad(float damping, float v0, float aceleracion_var){
         resorte1.gameObject.GetComponent<Transform>().position = posicion_masa1;
         escala_resote1.y=Mathf.Abs(11f - posicion_masa1.y);
         resorte1.transform.localScale = escala_resote1;
-    
+        if(vs1 == 0 && vs2 == 0){
+        control = 0; // estado inicial 
+        }
         //FINALIZA ACTUALIZACIÓN
+        }
     }
 }
